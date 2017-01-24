@@ -38,13 +38,14 @@ namespace EIPDownloader
             }
             return "";
         }
+        static string _downloadID = "";
+        static string _downloadURL = "";
+        static string _saveToLocation = "";
 
         static string GetDownloadURL(string projectID)
         {
             
-            string _downloadID ="";
-            string _downloadURL = "";
-            string _saveToLocation = "";
+           
 
             using (SqlConnection connection = new SqlConnection(connstr))
             {
@@ -80,34 +81,37 @@ namespace EIPDownloader
                 }
                
             }
-            try
+
+            if (!string.IsNullOrEmpty(_downloadID))
             {
-                Uri uri = new Uri(_downloadURL);
-              //  _saveToLocation = @"c:\dloads\";
-                string filename = @"\"+System.IO.Path.GetFileName(uri.LocalPath);
-                Console.WriteLine("Download Id: " + _downloadID);
-                Console.WriteLine("Download Url: " + _downloadURL);
-                Console.WriteLine("Save To Location: " + _saveToLocation + filename);
-
-
-
-                using (WebClient wc = new WebClient())
+                try
                 {
-                    wc.DownloadProgressChanged += wc_DownloadProgressChanged;
-                    wc.DownloadFileCompleted += Wc_DownloadFileCompleted; ;
-                    downloading = true;
-                    Console.Write("Progress .");
-                    wc.Credentials = new System.Net.NetworkCredential("patently", "paulsamazing84!");
-                    wc.DownloadFileAsync(new System.Uri(_downloadURL), _saveToLocation + filename);
+                    Uri uri = new Uri(_downloadURL);
+                    //  _saveToLocation = @"c:\dloads\";
+                    string filename = @"\" + System.IO.Path.GetFileName(uri.LocalPath);
+                    Console.WriteLine("Download Id: " + _downloadID);
+                    Console.WriteLine("Download Url: " + _downloadURL);
+                    Console.WriteLine("Save To Location: " + _saveToLocation + filename);
+
+
+
+                    using (WebClient wc = new WebClient())
+                    {
+                        wc.DownloadProgressChanged += wc_DownloadProgressChanged;
+                        wc.DownloadFileCompleted += Wc_DownloadFileCompleted; ;
+                        downloading = true;
+                        Console.Write("Progress .");
+                        wc.Credentials = new System.Net.NetworkCredential("patently", "paulsamazing84!");
+                        wc.DownloadFileAsync(new System.Uri(_downloadURL), _saveToLocation + filename);
+                    }
+                }
+                catch (Exception e)
+                {
+                    CompleteDownloadURL(_downloadID, status);
                 }
             }
-            catch (Exception e)
-            {
-                CompleteDownloadURL(_downloadID, status);
-            }
 
-
-            return "" ;
+            return _downloadID ;
         }
 
         private static void Wc_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
@@ -115,10 +119,10 @@ namespace EIPDownloader
             Console.WriteLine(" Done! ");
             downloading = false;
             status = 2;
-            CompleteDownloadURL(downloadID, status);
+            CompleteDownloadURL(_downloadID, status);
         }
 
-        static int progressInc = 0;
+        
         static int prevProgress = 0;
 
         static void wc_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
@@ -141,12 +145,12 @@ namespace EIPDownloader
             var projectID = Console.ReadLine();            
             while (!_quitFlag)
             {
-
-
                 if (!downloading)
                 {
                     Console.WriteLine("Polling...");
-                    GetDownloadURL(projectID);
+                    var _did = GetDownloadURL(projectID);
+                    if (string.IsNullOrEmpty(_did))
+                        _quitFlag = true;
                 }
             }
         }
