@@ -28,7 +28,7 @@ namespace EIPDownloader
                 command.Parameters.Add(new SqlParameter("@DownloadComment", null));
 
                 try
-                {
+                {f
                     command.ExecuteNonQuery();                    
                 }
                 catch (Exception e)
